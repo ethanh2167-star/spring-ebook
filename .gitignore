@@ -56,8 +56,8 @@ logs/
 # Upload / generated files
 ############################
 # 使用者上傳（不要上 Git）
-uploads/*
-!uploads/.gitkeep
+src/main/resources/static/upload/*
+!src/main/resources/static/upload/.gitkeep
 
 # Spring static upload
 src/main/resources/static/uploads/*
