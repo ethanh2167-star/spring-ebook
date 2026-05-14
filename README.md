@@ -1,246 +1,164 @@
-# E-Book Platform Backend System
+# Spring Ebook Platform
 
-## 專案簡介
+基於 Spring Boot 4 開發的電子書閱讀平台，實作使用者認證、書籍管理、書架、閱讀進度追蹤與訂單金流等完整功能。
 
-本專案為一個使用 Spring Boot 開發的電子書平台後端系統，實作會員認證、書籍管理、訂單處理、閱讀進度追蹤與系統維運功能。
+---
 
-系統設計重點在於：
+## 功能特色
 
-* 系統可維護性（分層架構）
-* 資料一致性（Transaction 管理）
-* 安全性（登入限制 / Token / Session 管理）
-* 系統穩定性（排程與清理機制）
+- **使用者認證**：註冊 / 登入 / 登出，UUID Session Token + Refresh Token 機制
+- **書籍瀏覽**：分類搜尋、分頁查詢、瀏覽次數追蹤（IP 去重）
+- **個人書架**：加入 / 移除書架，DB 層級 EXISTS 查詢
+- **閱讀進度**：記錄當前頁數與閱讀百分比
+- **訂單系統**：建立訂單、ECPay 金流串接（展示用）
+- **後台管理**：書籍 CRUD、封面圖片上傳（RBAC 權限控管）
+- **密碼重設**：Gmail SMTP 寄送重設信件
+- **API 文件**：Swagger UI（Springdoc OpenAPI 3.0）
+
+---
+
+## 技術棧
+
+| 類別 | 技術 |
+|------|------|
+| 語言 | Java 21 |
+| 框架 | Spring Boot 4.0.5 |
+| 安全 | Spring Security、UUID Session Token |
+| 資料層 | Spring Data JPA、Hibernate、Flyway |
+| 資料庫 | MariaDB |
+| 工具 | Lombok、Springdoc OpenAPI 3.0 |
+| 前端 | 原生 JavaScript（SPA 架構） |
 
 ---
 
 ## 系統架構
 
-### 分層架構（Layered Architecture）
+### 分層架構
 
 ```
-Client → Controller → Service → Repository → Database
+Controller → Service → Repository → Entity
+               ↕
+             DTO / Exception / Config / Security
 ```
 
-### 設計原則
+### UML 完整圖
 
-* 單一職責（SRP）
-* 低耦合、高內聚
-* 分層解耦
-* 交易一致性（ACID）
+> 包含類別圖、套件圖、ER Diagram、時序圖、活動圖、排程圖
 
----
-
-## UML 系統設計圖
-
-<p align="center">
-  <img src="./uml.png" width="100%">
-</p>
-
-包含：
-
-* Class Diagram（類別圖）
-* Package Diagram（套件圖）
-* Sequence Diagram（登入 / 訂單流程）
-* Activity Diagram（流程圖）
-* 排程機制圖
+![電子書系統 UML 完整圖](uml.png)
 
 ---
 
-## 核心功能
+## 啟動方式
 
-### 使用者與認證系統
+### 前置需求
 
-* 使用者註冊 / 登入
-* 登入失敗次數限制（防暴力破解）
-* Session-based Token 驗證機制（Access Token + Refresh Token）
-* 密碼重設（Email + Token）
+- Java 21+
+- MariaDB（預設 port 3307）
+- Maven 3.8+
 
----
+### 步驟
 
-### 書籍系統
+**1. Clone 專案**
 
-* 書籍列表查詢（分頁）
-* 書籍詳細資訊
-* 管理員書籍 CRUD（含封面上傳）
-
----
-
-### 書架系統
-
-* 新增 / 移除書架書籍
-* 查詢使用者書架
-
----
-
-### 訂單系統
-
-* 建立訂單（支援多本書）
-* 使用 OrderItem 設計訂單明細
-* 訂單金額計算
-* 使用 `@Transactional` 保證資料一致性
-
----
-
-### 閱讀進度系統
-
-* 記錄使用者閱讀進度
-* 支援續讀功能
-
----
-
-### 系統排程
-
-* 每日自動清理過期 Session（@Scheduled）
-
----
-
-## 安全設計
-
-### 為什麼使用 Session Token 而不是 JWT？
-
-| 項目        | Session Token | JWT |
-| --------- | ------------- | --- |
-| Server 控制 | 高             | 低   |
-| 強制登出      | 容易            | 困難  |
-| Token 撤銷  | 即時            | 困難  |
-| 擴展性       | 中等            | 高   |
-
-設計選擇：
-本系統採用 DB-based Session Token，優先考量安全性與可控性。Access Token 有效期 1 小時，搭配 30 天 Refresh Token 自動換發。
-
----
-
-## 交易機制（Transaction）
-
-```java
-@Transactional
-public Order createOrder(...) {
-    // 建立訂單與訂單明細
-}
+```bash
+git clone https://github.com/ethanh2167-star/spring-ebook.git
+cd spring-ebook
 ```
 
-設計目的：
+**2. 複製設定檔**
 
-* 保證訂單與訂單明細同時成功
-* 任一失敗 → 全部 rollback
-* 避免資料不一致
+```bash
+cp src/main/resources/application-example.yml src/main/resources/application.yml
+```
+
+依實際環境填入以下設定：
+
+| 欄位 | 說明 |
+|------|------|
+| `datasource.url` | MariaDB 連線字串 |
+| `datasource.username` | 資料庫帳號 |
+| `datasource.password` | 資料庫密碼 |
+| `mail.username` | Gmail 帳號 |
+| `mail.password` | Gmail 應用程式密碼 |
+
+**3. 設定環境變數（PowerShell）**
+
+```powershell
+$env:DB_URL="jdbc:mariadb://localhost:3307/ebook_db?characterEncoding=UTF-8&useSSL=false"
+$env:ADMIN_EMAIL="admin@ebook.com"
+$env:ADMIN_PASSWORD="yourpassword"
+$env:MAIL_USERNAME="your@gmail.com"
+$env:MAIL_PASSWORD="yourpassword"
+```
+
+**4. 啟動**
+
+```bash
+mvn spring-boot:run
+```
+
+開啟瀏覽器：[http://localhost:8080](http://localhost:8080)
 
 ---
 
-## 核心設計思考
+## API 文件
 
-### Order + OrderItem 設計
-
-```
-Order → OrderItem → Book
-```
-
-原因：
-
-* 支援一筆訂單多本書
-* 避免 Order 與 Book 強耦合
-* 符合電商系統設計
+啟動後前往：[http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 ---
 
-### Session 管理機制
+## 設計亮點
 
-* 登入後產生 Token 並儲存在 DB
-* 支援多裝置登入
-* 支援強制登出
-* 支援 Session 過期控管
+### Session Token vs JWT
 
----
+本專案採用 UUID Session Token 儲存於資料庫，而非 JWT，主要考量：
 
-### 全域例外處理（Global Exception）
+- **可撤銷性**：登出、帳號封鎖時可立即失效，JWT 無法做到
+- **簡單性**：不需管理 Token 黑名單或輪替金鑰
+- **可接受的效能取捨**：每次請求多一次 DB 查詢，但對此規模的應用影響極小
 
-```java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-}
-```
+### @Transactional 與 Rollback
 
-優點：
+訂單建立使用 `@Transactional`，確保訂單與明細同步寫入，任一失敗自動 Rollback。
 
-* 統一錯誤回應格式
-* 減少 Controller 重複邏輯
-* 提升可維護性
+### @Retryable 處理樂觀鎖
 
----
-
-### 排程清理機制
-
-```java
-@Scheduled(cron = "0 0 3 * * *")
-```
-
-用途：
-
-* 清除過期 Session
-* 避免資料庫膨脹
-* 提升系統效能
+登入時有 Optimistic Locking 衝突風險，使用 `@Retryable` 自動重試，避免手動 try-catch 污染業務邏輯。
 
 ---
 
 ## 專案結構
 
 ```
-com.ebook
-├── controller
-├── service
-├── repository
-├── model
-├── dto
-├── security
-├── config
-├── scheduler
-└── exception
+src/main/java/com/ebook/
+├── config/          # SecurityConfig、WebConfig、DataInitializer
+├── controller/      # AuthController、BookController、OrderController
+│                    # ShelfController、ProgressController、AdminBookController
+├── service/         # 各業務邏輯服務
+├── repository/      # Spring Data JPA Repository
+├── model/           # Entity（User、Book、Order、UserSession...）
+├── dto/             # BookDto、OrderDto、AuthDto、UserDto
+├── exception/       # GlobalExceptionHandler、CustomException
+└── security/        # TokenAuthFilter、CurrentUserArgumentResolver
 ```
 
 ---
-
-## 技術棧
-
-* Java 21
-* Spring Boot 4.0.5
-* Spring Data JPA
-* Hibernate
-* MariaDB
-* Lombok
-* Springdoc OpenAPI（Swagger UI）
-
----
-
-## 啟動方式
-
-```bash
-git clone https://github.com/your-repo/ebook-system.git
-cd ebook-system
-mvn spring-boot:run
-```
 
 ## 未來優化方向
 
-* 雲端檔案儲存（書籍封面 / PDF）
-* Docker 容器化
-* CI/CD 自動部署
+- 雲端檔案儲存（書籍封面 / PDF）
+- Docker 容器化
+- CI/CD 自動部署
+
+---
+
+## 聲明
+
+本專案為學校練習用途。部分書籍封面圖片來源自 [博客來](https://www.books.com.tw/)，版權歸原著作權人所有，僅供展示使用，無任何商業目的。
 
 ---
 
 ## 作者
 
-Ethan
-
----
-
-## 專案總結
-
-本專案展示：
-
-* 後端分層架構設計能力
-* 電商資料模型設計（Order / OrderItem）
-* Transaction 管理能力
-* 系統安全設計（Session Token / RBAC / 暴力破解防護）
-* API 文件化（Swagger UI）
-* 單元測試（JUnit + Mockito，29 個測試案例）
-* 系統維運思維（排程清理 / Flyway 版本管理）
+**Ethan** — [@ethanh2167-star](https://github.com/ethanh2167-star)
