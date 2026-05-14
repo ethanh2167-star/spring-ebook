@@ -1,0 +1,109 @@
+############################
+# Sensitive config (重要)
+############################
+# 真實設定檔不要上傳
+src/main/resources/application.properties
+src/main/resources/application-*.properties
+src/main/resources/application.yml
+src/main/resources/application-*.yml
+
+# 範例檔保留（給面試官）
+!src/main/resources/application-example.properties
+!src/main/resources/application-example.yml
+
+############################
+# Maven / Build
+############################
+target/
+*.jar
+*.war
+*.ear
+
+# Maven wrapper（保留）
+.mvn/*
+!.mvn/wrapper/maven-wrapper.jar
+
+############################
+# Eclipse
+############################
+.project
+.classpath
+.settings/
+.factorypath
+bin/
+
+############################
+# IntelliJ IDEA
+############################
+.idea/
+*.iws
+*.iml
+*.ipr
+
+############################
+# VS Code
+############################
+.vscode/
+
+############################
+# Logs
+############################
+*.log
+logs/
+*.out
+
+############################
+# Upload / generated files
+############################
+# 使用者上傳（不要上 Git）
+uploads/*
+!uploads/.gitkeep
+
+# Spring static upload
+src/main/resources/static/uploads/*
+!src/main/resources/static/uploads/.gitkeep
+
+############################
+# Environment
+############################
+.env
+.env.*
+*.env
+
+############################
+# OS files
+############################
+.DS_Store
+Thumbs.db
+desktop.ini
+
+############################
+# Temporary / cache
+############################
+*.tmp
+*.swp
+*.bak
+*.cache
+*.lock
+*.pid
+
+############################
+# Unnecessary files
+############################
+HELP.md
+*.md.bak
+*.md.old
+
+############################
+# Allow important assets（展示用）
+############################
+# favicon
+!src/main/resources/static/favicon.ico
+
+# UML / 文件圖片（docs 資料夾）
+!docs/*.png
+!docs/**/*.png
+
+# 電子書 PDF（靜態書檔資料夾）
+!src/main/resources/static/books/*.pdf
+banner.txt

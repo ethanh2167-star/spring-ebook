@@ -1,0 +1,79 @@
+# application-example.yml
+
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 15m
+      cookie:
+        same-site: lax
+        http-only: true
+
+spring:
+  profiles:
+    active: dev
+
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+  datasource:
+    url: "${DB_URL:jdbc:mariadb://localhost:3306/ebook_db?characterEncoding=UTF-8&useSSL=false}"
+    username: your_username
+    password: "your_password"
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      "[hibernate.format_sql]": true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 1
+    validate-on-migrate: false
+
+  web:
+    resources:
+      static-locations: classpath:/static/
+    error:
+      include-message: never
+      include-stacktrace: never
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: "${MAIL_USERNAME:your_email@gmail.com}"
+    password: "${MAIL_PASSWORD:your_email_password}"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  frontend-url: "${FRONTEND_URL:http://localhost:3000}"
+  upload-dir: "${UPLOAD_DIR:uploads}"
+
+logging:
+  level:
+    "[org.mariadb.jdbc.message.server.ErrorPacket]": ERROR
+    "[org.springframework.boot.autoconfigure.security]": ERROR
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
